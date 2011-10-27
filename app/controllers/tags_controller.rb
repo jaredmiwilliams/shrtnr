@@ -1,10 +1,11 @@
 class TagsController < ApplicationController
  	include ApplicationHelper
+ 	include TagsHelper
 
 	def get
 		format = getFormat(params)
 
-		results = Tag.find_by_sql("select * from tags where tag_normalized like '%#{params[:tag]}%'")
+		results = Tag.find_by_sql("select * from tags where tag_normalized like '%#{cleanTag(params[:tag])}%'")
 
 		tags = results.inject([]) {|res, tag| res << {:tag_value => tag.tag_value, :tag_normalized => tag.tag_normalized, :id => tag.id}}
 

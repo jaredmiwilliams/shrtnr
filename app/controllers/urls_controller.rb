@@ -31,8 +31,8 @@ class UrlsController < ApplicationController
     end
 
     if format == 'html'
-      if result[:error]
-        //TODO html
+      if @result[:error]
+        #TODO html
       else
         redirect_to @result[:url]
       end
@@ -56,13 +56,13 @@ class UrlsController < ApplicationController
        }
     else
       @result = {
-        :error => 'no url associated with #{request.url}'
+        :error => 'no url associated with #{request.url}',
         :url => request.url
       }
     end
 
     if format == 'html'
-      //TODO html
+      #TODO html
     else
       render format.to_sym => @result
     end
@@ -88,13 +88,16 @@ class UrlsController < ApplicationController
       raw_tags = generateTags(tag_string)
 
       @tags = []
+
       raw_tags.each { |raw_tag|
         #do lookup with normalized tags in an attempt to avoid duplicates
-        @tags <<
+        tag = 
           (
             getNormalizedTag(raw_tag[1]) || 
               Tag.new(:tag_value => raw_tag[0], :tag_normalized => raw_tag[1])
-          )
+          );
+
+        @tags << tag;          
       }
 
       url = Url.new(:original_url => @url,
@@ -109,17 +112,18 @@ class UrlsController < ApplicationController
       ret = {
         :url => @url, 
         :short_url => "#{getDomain(request)}/#{@hashed_url}", 
-        :edit_url => "#{getDomain(request)}/e/#{@hashed_edit_url}"
+        :edit_url => "#{getDomain(request)}/e/#{@hashed_edit_url}",
+        :tags => @tags
       }
     else
       ret = {
-        :error => "url provided doesn't appear to be valid", 
+        :error => "The url provided (#{params[:url]}) doesn't appear to be valid.", 
         :url => params[:url]
       }
     end
 
     if format == 'html'
-      //TODO html
+      #TODO html
     else
       render format.to_sym => ret
     end
@@ -132,6 +136,4 @@ class UrlsController < ApplicationController
 
     render :json => [@hash]    
   end
-
-
 end
