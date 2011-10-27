@@ -1,0 +1,97 @@
+<script type="text/javascript">
+	function submitData(params) {
+		var tags = params[0].attr('value');
+		var id = params[1].attr('value');
+
+		getJSON
+			(
+				'/e/s.json?id=' + encodeURIComponent(id) + "&tags=" + encodeURIComponent(tags),
+				[writeSubmitData]
+			);
+	}
+	function writeSubmitData(data) {
+		$('#form').slideUp();
+
+		if(data['error']) {
+
+			$('#error').append('  ' + data['error']).fadeIn();
+		}
+		else {
+			$('#shortened-url-new').attr('value', data.short_url);
+			$('#edit-url-new').attr('value', data.edit_url);
+			$('#original-url-new').attr('value', data.url);
+
+			tag_data = '';
+			if(data['tags'].length > 0) {
+				var tags = data['tags'];
+
+				for(var i in tags ) {
+					tag_data += '<li><a href="/tag/' + tags[i]['tag']['tag_value'] + '">' + tags[i]['tag']['tag_value'] +'</a></li>'
+				}
+			}
+
+			$('#submitted-tags').html(tag_data);
+
+			$('#response').fadeIn();
+		}
+	}
+
+	$(document).ready(function() {
+		tagComplete = new TokenComplete($('#tags'), ',', getMatchingTags)
+		tagComplete.register();
+
+		submitHandler = new SubmitHandler($('#save'), [$('#tags'), $('#url_id')], submitData);
+		submitHandler.register();
+	});
+</script>
+
+<h1>Modify stored URL</h1>
+
+<% if @result %>
+	<div id="form">
+		<span id="hint">(hint: you can only change the tags)<span>
+		<div class="field">
+			<input type="text" disabled class="input submitted" name="url" id="original-url" value="<%=h @result.original_url %>">
+			<label>original</label>        
+		</div>
+		<div class="field">
+			<input type="text" disabled class="input submitted" name="url" id="shortened-url" value="<%=h @short_url %>">
+			<label>to share</label>
+		</div>
+		<div class="field">
+			<input type="text" class="input submitted" name="tags" id="tags" value="<%=h @result.tags.inject([]) {|res, tag| res << tag.tag_value}.join(", ") %>">
+			<label>modify tags</label>
+		</div>
+		<input type="hidden" id="url_id" value="<%= @result.id %>">
+		<div class="button" id="save">
+			save!
+		</div>
+		<div id="suggestions"></div>
+	</div>
+	<div id="response">
+		<h3>success!</h3>
+		<div class="field">
+			<input type="text" class="input submitted" name="url" id="shortened-url-new">
+			<label>to share</label>
+		</div>
+		<div class="field">
+			<input type="text" class="input submitted" name="url" id="edit-url-new">
+			<label>to edit</label>        
+		</div>
+		<div class="field">
+			<input type="text" class="input submitted" name="url" id="original-url-new">
+			<label>original</label>        
+		</div>
+		<div id="submitted-tags">
+		</div>
+	</div>
+	<div id="error">
+		Sorry, there was an issue trying to complete that request.
+	</div>
+<% else %>
+	<div id="error" style="display:inline;">
+		Sorry, there was an issue trying to complete that request.
+	</div>
+<% end %>
+
+	

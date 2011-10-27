@@ -3,7 +3,7 @@ require 'digest/md5'
 module UrlsHelper
 
 	#length of hash we want to create
-	@@HASH_LENGTH = 10
+	@@HASH_LENGTH = 6
 	#max times to hash string before giving up
 	@@MAX_HASH_ITERATIONS = 10
 	#2^23, arbitrarily large number
@@ -34,6 +34,7 @@ module UrlsHelper
 			end
 		}
 
+		# if unique hash not found try again
 		if(hashed_url == url or hashed_edit_url == url)
 			hashUrl(url)
 		else
@@ -41,6 +42,8 @@ module UrlsHelper
 		end
 	end
 
+	#compute hash based on instructions in args
+	# or if nothing provided a random integer
 	def doHash(*args)
 		max_iterations = @@MAX_HASH_ITERATIONS
 		hash_length = @@HASH_LENGTH
@@ -59,7 +62,8 @@ module UrlsHelper
 		else
 			hash = rand(@@MAX_RAND)
 		end
-
+		
+		#hash until provided block aborts or we hit max_iterations
 		0.upto(max_iterations) { |i|
 			hash = Digest::MD5.hexdigest(hash)
 			

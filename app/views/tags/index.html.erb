@@ -1,0 +1,14 @@
+<h1>Urls referencing the tag "<%=@results[:tag]%>"</h1>
+
+<% @results[:related].each do |result| %>
+	<div class="tag-reference">
+		<div class="field">
+			<input type="text" class="input submitted" name="url" id="original-url" value="<%=h result[:url] %>">
+			<label>original</label>        
+		</div>
+		<div class="field">
+			<input type="text" class="input submitted" name="url" id="shortened-url" value="<%=h result[:hash] %>">
+			<label>to share</label>
+		</div>
+	</div>
+<% end %>

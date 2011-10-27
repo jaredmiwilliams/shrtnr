@@ -1,6 +1,26 @@
 module TagsHelper
 	@@TAG_SEPARATOR = ','
 
+	# from 'v1,v2,v3' generate tag objects
+	def buildTagList(tag_string)
+		raw_tags = generateTags(tag_string)
+
+		tags = []
+
+		raw_tags.each { |raw_tag|
+			#do lookup with normalized tags in an attempt to avoid duplicates
+			tag = 
+				(
+					getNormalizedTag(raw_tag[1]) || 
+					Tag.new(:tag_value => raw_tag[0], :tag_normalized => raw_tag[1])
+				);
+
+			tags << tag;          
+		}
+		tags
+	end
+
+	# from 'v1,v2,v3' generate tuples with raw and cleansed data
 	def generateTags(tag_string)
 		tags = []
 
@@ -12,12 +32,13 @@ module TagsHelper
 			}
 
 			0.upto(raw_tags.length - 1) { |i|
-				tags << [raw_tags[i], clean_tags[i]]
+				tags << [raw_tags[i].strip, clean_tags[i]]
 			}
 		end
 		tags
 	end
 
+	# given a tag strip and cleanse it of non-word characters
 	def cleanTag(tag)
 		clean_tag = nil
 		if tag
@@ -28,7 +49,7 @@ module TagsHelper
 		end
 		clean_tag
 	end
-
+	
 	def getNormalizedTag(normalized_text)
 		results = Tag.find_all_by_tag_normalized(normalized_text)
 

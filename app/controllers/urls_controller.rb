@@ -4,6 +4,7 @@ class UrlsController < ApplicationController
   include TagsHelper
   
   #mapped from to <domain>/<hash>
+  #if hash is found will forward to appropriate url
   def forward
     format = getFormat(params)
 
@@ -32,7 +33,7 @@ class UrlsController < ApplicationController
 
     if format == 'html'
       if @result[:error]
-        #TODO html
+        render # index.html.erb
       else
         redirect_to @result[:url]
       end
@@ -41,35 +42,7 @@ class UrlsController < ApplicationController
     end
   end
 
-  #mapped from <domain>/<hash>/info
-  def info
-    @hash = params[:hash]
-
-    results = Url.find_all_by_hashed_url(@hash)
-
-    @result = {}
-    if not results.empty?
-       @result = {
-         :url => @result.original_url, 
-         :short_url => "#{getDomain(request)}/#{@result.hashed_url}", 
-         :hit_count => @result.count
-       }
-    else
-      @result = {
-        :error => 'no url associated with #{request.url}',
-        :url => request.url
-      }
-    end
-
-    if format == 'html'
-      #TODO html
-    else
-      render format.to_sym => @result
-    end
-  end
-
   #mapped from <domain>/c/?url=<url>&tags=<tags>
-  # or <domain>/c/<url>/<tags> (chunks should be url encoded)
   def create
     format = getFormat(params)
 
@@ -84,21 +57,8 @@ class UrlsController < ApplicationController
 
       @created_by = request.remote_ip
 
-      tag_string = params[:tags]
-      raw_tags = generateTags(tag_string)
-
-      @tags = []
-
-      raw_tags.each { |raw_tag|
-        #do lookup with normalized tags in an attempt to avoid duplicates
-        tag = 
-          (
-            getNormalizedTag(raw_tag[1]) || 
-              Tag.new(:tag_value => raw_tag[0], :tag_normalized => raw_tag[1])
-          );
-
-        @tags << tag;          
-      }
+      #format tags
+      @tags = buildTagList(params[:tags])
 
       url = Url.new(:original_url => @url,
                     :hashed_url => @hashed_url,
@@ -122,18 +82,54 @@ class UrlsController < ApplicationController
       }
     end
 
-    if format == 'html'
-      #TODO html
-    else
-      render format.to_sym => ret
-    end
+    render format.to_sym => ret
   end
 
+  #mapped from <domain>/e/<hash>
   def edit
     @hash = params[:hash]
 
     results = Url.find_all_by_hashed_edit_url(@hash)
 
-    render :json => [@hash]    
+    @result = nil
+    @url = nil
+    if not results.empty?
+      @result = results[0]
+
+      @short_url = "#{getDomain(request)}/#{@result.hashed_url}"
+    end
+
+    render # index.html.erb
+  end
+
+  # mapped from <domain>/e/s.:format
+  def edit_save
+    format = getFormat(params)
+
+    id = params[:id]
+    tags = buildTagList(params[:tags])
+
+    url = Url.find(id)
+
+    ret = nil
+    if url
+      #tags all only value with potential to be modified
+      url.tags = tags
+
+      url.save()
+      ret = {
+        :url => url.original_url, 
+        :short_url => "#{getDomain(request)}/#{url.hashed_url}", 
+        :edit_url => "#{getDomain(request)}/e/#{url.hashed_edit_url}",
+        :tags => tags
+      }
+    else
+      ret = {
+        :error => "The url provided (#{params[:url]}) doesn't appear to be valid.", 
+        :url => params[:url]
+      }
+    end
+
+    render format.to_sym => ret
   end
 end

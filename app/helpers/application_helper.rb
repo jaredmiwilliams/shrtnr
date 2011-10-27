@@ -12,6 +12,7 @@ module ApplicationHelper
 		format
 	end
 
+	#get current domain..
 	def getDomain(request)
 		request.protocol + (request.port == 80 ? request.host : request.host_with_port)
 	end
