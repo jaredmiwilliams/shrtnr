@@ -38,7 +38,7 @@ where tag_normalized='#{cleanTag(params[:tag])}'"
 
 		query = Tag.find_by_sql(query_text)
 
-		tag = nil;
+		tag = params[:tag];
 	
 		related = query.inject([]) {|res, data|
 			tag = data.tag_value

@@ -1,14 +1,18 @@
 <h1>Urls referencing the tag "<%=@results[:tag]%>"</h1>
-
-<% @results[:related].each do |result| %>
-	<div class="tag-reference">
-		<div class="field">
-			<input type="text" class="input submitted" name="url" id="original-url" value="<%=h result[:url] %>">
-			<label>original</label>        
+<% if @results[:related] && !@results[:related].empty? %>
+	<% @results[:related].each do |result| %>
+		<div class="tag-reference">
+			<div class="field">
+				<input type="text" class="input submitted" name="url" id="original-url" value="<%=h result[:url] %>">
+				<label>original</label>        
+			</div>
+			<div class="field">
+				<input type="text" class="input submitted" name="url" id="shortened-url" value="<%=h result[:hash] %>">
+				<label>to share</label>
+			</div>
 		</div>
-		<div class="field">
-			<input type="text" class="input submitted" name="url" id="shortened-url" value="<%=h result[:hash] %>">
-			<label>to share</label>
-		</div>
-	</div>
+	<% end %>
+<% else %>
+	<h3>Hmmm, it seems like we're missing that one.</h3>
+	<h3><a href="/">maybe you can make it?</a></h3>
 <% end %>

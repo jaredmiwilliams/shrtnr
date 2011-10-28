@@ -104,3 +104,6 @@ a:visited {
 #hint {
   font-size:90%;
 }
+.tag-reference {
+  margin-bottom:10px;
+}
